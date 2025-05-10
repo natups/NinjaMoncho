@@ -21,84 +21,95 @@ export default class Game extends Phaser.Scene {
     this.load.image("plataforma", "./public/assets/platform.png");
     this.load.image("cuadrado", "./public/assets/Square.png");
     this.load.image("triangulo", "./public/assets/Triangle.png");
+    this.load.image("hexagono", "./public/assets/hexagono.png");
   }
 
+
   create() {
-    // cielo reescalado
+    // Fondo de cielo reescalado y centrado
     this.add.image(400, 300, "cielo").setScale(2);
 
-    // plataforma reescalada
+    // Grupo de plataformas estáticas y posicionamiento
     this.platforms = this.physics.add.staticGroup();
-    this.platforms.create(400, 568, "plataforma").setScale(2).refreshBody();
-    this.platforms.create(400, 250, "plataforma").setScale(0.6).refreshBody();
-    this.platforms.create(100, 400, "plataforma");
-    this.platforms.create(700, 450, "plataforma");
+    this.platforms.create(400, 568, "plataforma").setScale(2).refreshBody();  // Plataforma del suelo
+    this.platforms.create(400, 250, "plataforma").setScale(0.6).refreshBody(); // Plataforma flotante central
+    this.platforms.create(100, 400, "plataforma"); // Plataforma lateral izquierda
+    this.platforms.create(700, 450, "plataforma"); // Plataforma lateral derecha
 
+    // Configuración del jugador
+    this.player = this.physics.add.sprite(400, 300, "ninja"); // Añade sprite del jugador
+    this.player.setScale(0.1); // Escala del jugador
+    this.player.setBounce(0.2); // Rebote al caer
+    this.player.setCollideWorldBounds(true); // No puede salirse de los bordes del mundo
 
-    // caracteristicas del jugador
-    this.player = this.physics.add.sprite(400, 300, "ninja");
-    this.player.setScale(0.1); // hago mas chico al personaje
-    this.player.setBounce(0.2); // genero un rebote
-    this.player.setCollideWorldBounds(true); // impido que el jugador salga de los limites de la pantalla del juego
-    this.physics.add.collider(this.player, this.platforms); // hace que el jugador colisione con las plataformas
+    // Colisión entre jugador y plataformas
+    this.physics.add.collider(this.player, this.platforms);
 
-    this.cursors = this.input.keyboard.createCursorKeys(); // agrego las teclas de flechas para usarlas en update
+    // Captura de entradas del teclado (flechas)
+    this.cursors = this.input.keyboard.createCursorKeys();
 
-    // uso un array vacío para guardar las figuras recolectadas
-    this.figRecolectadas = [];
-
-    // agrego los puntos del jugador
+    // Inicialización de puntuación
+    this.figRecolectadas = []; // Array donde se guardan las figuras recolectadas
     this.puntos = 0;
     this.puntosTexto = this.add.text(16, 16, "Puntos: 0", {
       fontSize: "20px",
       fill: "#fff",
     });
 
-    // agrego el tiempo del jugador
+    // Inicialización del temporizador de juego
     this.timeLeft = 30;
     this.timerText = this.add.text(650, 16, "Tiempo: 0", {
       fontSize: "20px",
       fill: "#fff",
     });
 
-    // creo un evento que se repite cada 0.5 segundos
+    // Evento que genera figuras con física cada 0.5 segundos
     this.time.addEvent({
-      delay: 500, // 0.5 segundos
-      callback: () => { // el callback, es una función que se ejecuta después del tiempo de espera
-        const tipos = ["cuadrado", "triangulo", "diamante"]; // lista de posibles tipos de figuras que pueden aparecer
-        const tipo = Phaser.Utils.Array.GetRandom(tipos); // selecciona aleatoriamente un tipo de figura de la lista
-        const x = Phaser.Math.Between(50, 750); // elige una posición horizontal aleatoria entre 50 y 750 píxeles
-        const figura = this.physics.add.image(x, 0, tipo).setScale(0.5); // crea la figura en la posición x, empezando desde arriba (y = 0)
-        figura.tipo = tipo; // guarda el tipo de figura como una propiedad del objeto
+      delay: 500,
+      callback: () => {
+        // Tipos de figuras disponibles
+        const tipos = ["cuadrado", "triangulo", "diamante", "hexagono"];
+        const tipo = Phaser.Utils.Array.GetRandom(tipos); // Selección aleatoria
+        const x = Phaser.Math.Between(50, 750); // Posición X aleatoria
 
-        // asigno puntos iniciales según el tipo
+        // Creación de figura con física
+        const figura = this.physics.add.image(x, 0, tipo).setScale(0.5);
+        figura.tipo = tipo; // Guarda el tipo para referencia
+
+        // Asignación de "vida" (puntosRestantes) según tipo
         if (tipo === "cuadrado") {
           figura.puntosRestantes = 10;
         } else if (tipo === "triangulo") {
           figura.puntosRestantes = 15;
         } else if (tipo === "diamante") {
           figura.puntosRestantes = 25;
+        } else if (tipo === "hexagono") {
+          figura.puntosRestantes = 10; // Se eliminará luego de suficientes rebotes
         }
 
-        figura.setVelocityY(Phaser.Math.Between(80, 150)); // hace que la figura caiga con una velocidad vertical aleatoria
-        figura.setBounce(0.5); // hace que la figura rebote
-        figura.setCollideWorldBounds(true); // hace que la figura no se salga de los límites
+        // Físicas de la figura
+        figura.setVelocityY(Phaser.Math.Between(80, 150)); // Velocidad vertical aleatoria
+        figura.setBounce(0.5); // Rebote
+        figura.setCollideWorldBounds(true); // Rebota contra los bordes
 
-        // 👇 Rebote: pierde 5 puntos cada vez que toca la plataforma
-        this.physics.add.collider(figura, this.platforms, () => {
-          figura.puntosRestantes -= 5;
-          figura.setTint(0xffaaaa); // efecto visual (opcional)
+        // Colisión con plataformas: pierde puntosRestantes con cada rebote
+        if (figura.puntosRestantes !== undefined) {
+          this.physics.add.collider(figura, this.platforms, () => {
+            figura.puntosRestantes -= 5; // Resta vida por cada rebote
+            figura.setTint(0xffaaaa); // Feedback visual
+
             if (figura.puntosRestantes <= 0) {
-              figura.destroy();
+              figura.destroy(); // Desaparece si se agota su "vida"
             }
-        });
+          });
+        }
 
-        // detecta colisión entre el jugador y la figura
+        // Superposición con el jugador: recolecta figura
         this.physics.add.overlap(this.player, figura, () => {
-          figura.destroy(); // cuando colisionan, se destruye la figura (como si el jugador la recolectara)
-          this.figRecolectadas.push(tipo); // Guardo el tipo de figura recolectada en el array
+          figura.destroy(); // Se elimina al ser recolectada
+          this.figRecolectadas.push(tipo); // Guarda el tipo en el array
 
-          // Determinar cuántos puntos se obtienen según el tipo
+          // Asignación de puntos según el tipo
           let puntosGanados = 0;
           if (tipo === "cuadrado") {
             puntosGanados = 10;
@@ -106,45 +117,48 @@ export default class Game extends Phaser.Scene {
             puntosGanados = 15;
           } else if (tipo === "diamante") {
             puntosGanados = 25;
+          } else if (tipo === "hexagono") {
+            puntosGanados = -10; // Penalización por recolectar hexágonos
           }
 
-          // suma los puntos y actualiza el texto en pantalla
+          // Actualiza los puntos
           this.puntos += puntosGanados;
           this.puntosTexto.setText("Puntos: " + this.puntos);
 
-          // Si hay al menos 2 de cada tipo, muestra mensaje de victoria y pausa la escena
+          // Verifica condición de victoria
           if (this.puntos >= 100) {
             this.add.text(300, 300, "¡GANASTE!", {
               fontSize: "40px",
-              fill: "#0f0"
+              fill: "#0f0",
             });
-            this.scene.pause(); // detiene la escena (termina el juego)
+            this.scene.pause(); // Detiene el juego
           }
         });
       },
-      loop: true, // hace que este evento se repita continuamente
+      loop: true,
     });
 
-    // Temporizador descendente (MEJORA 1)
+    // Temporizador descendente: se ejecuta cada segundo
     this.time.addEvent({
-      delay: 1000, // establece un retraso de 1000 milisegundos (1 segundo) entre cada evento
-      callback: () => { // función que se ejecuta en cada evento
-        this.timeLeft--; // disminuye el valor del timepo en 1 segundo
-        this.timerText.setText("Tiempo: " + this.timeLeft); // actualiza el texto en pantalla para mostrar el tiempo restante
+      delay: 1000, // Cada 1 segundo
+      callback: () => {
+        this.timeLeft--; // Resta 1 segundo
+        this.timerText.setText("Tiempo: " + this.timeLeft); // Actualiza texto
 
-        // verifico si el tiempo llego a 0
+        // Si se acaba el tiempo, el jugador pierde
         if (this.timeLeft <= 0) {
-          this.player.setTint(0xff0000); // pinto al persoanje de rojo al perder
-          this.add.text(300, 300, "¡PERDISTE!", { // muestro el mensaje en el centro de la pantalla
+          this.player.setTint(0xff0000); // Cambio de color al jugador
+          this.add.text(300, 300, "¡PERDISTE!", {
             fontSize: "40px",
-            fill: "#f00"
+            fill: "#f00",
           });
-          this.scene.pause(); // pauso la escena, terminando el juego
+          this.scene.pause(); // Detiene el juego
         }
       },
-      loop: true, // se repite indefinidamente cada segundo
+      loop: true,
     });
   }
+
 
   update() {
     // Movimiento hacia la izquierda
