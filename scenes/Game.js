@@ -98,7 +98,7 @@ export default class Game extends Phaser.Scene {
           const diamantes = this.figRecolectadas.filter(f => f === "diamante").length;
 
           // Si hay al menos 2 de cada tipo, muestra mensaje de victoria y pausa la escena
-          if (cuadrados >= 2 && triangulos >= 2 && diamantes >= 2) {
+          if (this.puntos >= 100) {
             this.add.text(300, 300, "¡GANASTE!", {
               fontSize: "40px",
               fill: "#0f0"
