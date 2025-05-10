@@ -30,11 +30,15 @@ export default class Game extends Phaser.Scene {
     // plataforma reescalada
     this.platforms = this.physics.add.staticGroup();
     this.platforms.create(400, 568, "plataforma").setScale(2).refreshBody();
+    this.platforms.create(400, 250, "plataforma").setScale(0.6).refreshBody();
+    this.platforms.create(100, 400, "plataforma");
+    this.platforms.create(700, 450, "plataforma");
+
 
     // caracteristicas del jugador
     this.player = this.physics.add.sprite(400, 300, "ninja");
     this.player.setScale(0.1); // hago mas chico al personaje
-    this.player.setBounce(0.5); // genero un rebote
+    this.player.setBounce(0.2); // genero un rebote
     this.player.setCollideWorldBounds(true); // impido que el jugador salga de los limites de la pantalla del juego
     this.physics.add.collider(this.player, this.platforms); // hace que el jugador colisione con las plataformas
 
