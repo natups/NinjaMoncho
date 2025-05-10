@@ -125,13 +125,9 @@ export default class Game extends Phaser.Scene {
           this.puntos += puntosGanados;
           this.puntosTexto.setText("Puntos: " + this.puntos);
 
-          // Verifica condición de victoria
+          // Verifica la condición de victoria o derrota
           if (this.puntos >= 100) {
-            this.add.text(300, 300, "¡GANASTE!", {
-              fontSize: "40px",
-              fill: "#0f0",
-            });
-            this.scene.pause(); // Detiene el juego
+            this.scene.start("GameOver", { ganaste: true, puntos: this.puntos });
           }
         });
       },
@@ -147,12 +143,7 @@ export default class Game extends Phaser.Scene {
 
         // Si se acaba el tiempo, el jugador pierde
         if (this.timeLeft <= 0) {
-          this.player.setTint(0xff0000); // Cambio de color al jugador
-          this.add.text(300, 300, "¡PERDISTE!", {
-            fontSize: "40px",
-            fill: "#f00",
-          });
-          this.scene.pause(); // Detiene el juego
+          this.scene.start("GameOver", { ganaste: false, puntos: this.puntos });
         }
       },
       loop: true,
