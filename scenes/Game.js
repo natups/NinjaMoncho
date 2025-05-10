@@ -57,28 +57,44 @@ export default class Game extends Phaser.Scene {
       fill: "#fff",
     });
 
-    // creo un evento que se repite cada 1.5 segundos
+    // creo un evento que se repite cada 0.5 segundos
     this.time.addEvent({
-      delay: 1500, // milisegundos entre cada ejecución (1500 = 1.5 segundos)
+      delay: 500, // 0.5 segundos
       callback: () => { // el callback, es una función que se ejecuta después del tiempo de espera
         const tipos = ["cuadrado", "triangulo", "diamante"]; // lista de posibles tipos de figuras que pueden aparecer
         const tipo = Phaser.Utils.Array.GetRandom(tipos); // selecciona aleatoriamente un tipo de figura de la lista
         const x = Phaser.Math.Between(50, 750); // elige una posición horizontal aleatoria entre 50 y 750 píxeles
         const figura = this.physics.add.image(x, 0, tipo).setScale(0.5); // crea la figura en la posición x, empezando desde arriba (y = 0)
         figura.tipo = tipo; // guarda el tipo de figura como una propiedad del objeto
+
+        // asigno puntos iniciales según el tipo
+        if (tipo === "cuadrado") {
+          figura.puntosRestantes = 10;
+        } else if (tipo === "triangulo") {
+          figura.puntosRestantes = 15;
+        } else if (tipo === "diamante") {
+          figura.puntosRestantes = 25;
+        }
+
         figura.setVelocityY(Phaser.Math.Between(80, 150)); // hace que la figura caiga con una velocidad vertical aleatoria
         figura.setBounce(0.5); // hace que la figura rebote
         figura.setCollideWorldBounds(true); // hace que la figura no se salga de los límites
-        this.physics.add.collider(figura, this.platforms); // detecta colisiones entre las figuras y las plataformas
+
+        // 👇 Rebote: pierde 5 puntos cada vez que toca la plataforma
+        this.physics.add.collider(figura, this.platforms, () => {
+          figura.puntosRestantes -= 5;
+          figura.setTint(0xffaaaa); // efecto visual (opcional)
+            if (figura.puntosRestantes <= 0) {
+              figura.destroy();
+            }
+        });
 
         // detecta colisión entre el jugador y la figura
         this.physics.add.overlap(this.player, figura, () => {
           figura.destroy(); // cuando colisionan, se destruye la figura (como si el jugador la recolectara)
+          this.figRecolectadas.push(tipo); // Guardo el tipo de figura recolectada en el array
 
-          // Guardar el tipo de figura recolectada en el array
-          this.figRecolectadas.push(tipo);
-
-           // Determinar cuántos puntos se obtienen según el tipo
+          // Determinar cuántos puntos se obtienen según el tipo
           let puntosGanados = 0;
           if (tipo === "cuadrado") {
             puntosGanados = 10;
@@ -91,11 +107,6 @@ export default class Game extends Phaser.Scene {
           // suma los puntos y actualiza el texto en pantalla
           this.puntos += puntosGanados;
           this.puntosTexto.setText("Puntos: " + this.puntos);
-
-          // cuenta cuántas figuras se han recolectado de cada tipo
-          const cuadrados = this.figRecolectadas.filter(f => f === "cuadrado").length;
-          const triangulos = this.figRecolectadas.filter(f => f === "triangulo").length;
-          const diamantes = this.figRecolectadas.filter(f => f === "diamante").length;
 
           // Si hay al menos 2 de cada tipo, muestra mensaje de victoria y pausa la escena
           if (this.puntos >= 100) {
