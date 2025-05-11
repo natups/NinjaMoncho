@@ -9,7 +9,7 @@ export default class GameOver extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("cielo", "./public/assets/Cielo.webp");
+    this.load.image("cielo", "./assets/Cielo.webp");
   }
 
   create() {
