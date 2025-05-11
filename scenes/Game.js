@@ -19,8 +19,8 @@ export default class Game extends Phaser.Scene {
     this.load.image("diamante", "./assets/diamond.png");
     this.load.image("ninja", "./assets/Ninja.png");
     this.load.image("plataforma", "./assets/platform.png");
-    this.load.image("cuadrado", "./assets/Square.png");
-    this.load.image("triangulo", "./assets/Triangle.png");
+    this.load.image("cuadrado", "./assets/square.png");
+    this.load.image("triangulo", "./assets/triangle.png");
     this.load.image("hexagono", "./assets/hexagono.png");
   }
 
