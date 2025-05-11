@@ -21,19 +21,19 @@ export default class GameOver extends Phaser.Scene {
     const color = this.ganaste ? "#0f0" : "#f00"; // Color verde si ganó, rojo si perdió
 
     // Mostrar el mensaje
-    this.add.text(300, 200, mensaje, {
+    this.add.text(260, 200, mensaje, {
       fontSize: "48px",
       fill: color,
     });
 
     // puntuación final
-    this.add.text(280, 270, "Puntuación final: " + this.puntos, {
+    this.add.text(180, 270, "Puntuación final: " + this.puntos, {
       fontSize: "32px",
       fill: "#fff",
     });
 
     // reiniciar el juego
-    this.add.text(220, 350, "Presiona ESPACIO para volver a jugar", {
+    this.add.text(140, 350, "Presiona ESPACIO para volver a jugar", {
       fontSize: "24px",
       fill: "#fff",
     });
