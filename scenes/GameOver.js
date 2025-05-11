@@ -13,14 +13,14 @@ export default class GameOver extends Phaser.Scene {
   }
 
   create() {
-    // Fondo
+    // fondo
     this.add.image(400, 300, "cielo").setScale(2);
 
     // Mensaje (Victoria o Derrota)
     const mensaje = this.ganaste ? "¡GANASTE!" : "¡PERDISTE!";
     const color = this.ganaste ? "#0f0" : "#f00"; // Color verde si ganó, rojo si perdió
 
-    // Mostrar el mensaje
+    // muestro el mensaje
     this.add.text(260, 200, mensaje, {
       fontSize: "48px",
       fill: color,
@@ -40,7 +40,7 @@ export default class GameOver extends Phaser.Scene {
 
     // presionar la tecla ESPACIO para reiniciar
     this.input.keyboard.once("keydown-SPACE", () => {
-      this.scene.start("Game"); // Reinicia la escena "Game" (puedes cambiar el nombre si es otro)
+      this.scene.start("Game"); // reinicia la escena "Game"
     });
   }
 }
